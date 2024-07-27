@@ -2,41 +2,72 @@ import { Request, Response } from "express";
 import { prismaClient } from "../database/prismaClient";
 
 export class TransactionController {
-  public async createUser(request: Request, response: Response) {
-    const { name, email, password, documents, userType } = request.body;
-
+  public async transaction(request: Request, response: Response) {
+    const { sender, receiver, amount } = request.body;
     try {
-      const emailExists = await prismaClient.user.findUnique({
-        where: { email: email },
+      const userSender = await prismaClient.user.findUnique({
+        where: {
+          documents: sender,
+        },
       });
-      const documentsExists = await prismaClient.user.findUnique({
-        where: { documents: documents },
-      });
-
-      if (documentsExists && emailExists) {
-        response
-          .status(400)
-          .json({ error: "Document and email already exists" });
-      }
-      if (emailExists) {
-        response.status(400).json({ error: "Email already exists" });
-      }
-
-      if (documentsExists) {
-        response.status(400).json({ error: "Document already exists" });
-      }
-
-      const newUserCreated = await prismaClient.user.create({
-        data: {
-          name,
-          email,
-          password,
-          documents,
-          userType,
+      const userReceiver = await prismaClient.user.findUnique({
+        where: {
+          documents: receiver,
         },
       });
 
-      return response.status(200).json(newUserCreated);
+      !userSender ? "Sender not found" : userSender;
+      !userReceiver ? "Receiver not found" : userReceiver;
+
+      if (userSender!.userType === 1) {
+        return response
+          .status(400)
+          .send("Esse usuário não pode fazer transferências");
+      }
+
+      if (userSender!.balance < amount) {
+        return response
+          .status(400)
+          .send("Saldo insuficiente para essa transição");
+      }
+
+      const updateSenderBalance = (userSender!.balance -= amount);
+      const updateReceiverBalance = (userReceiver!.balance += amount);
+
+      const id_sender = userSender ? userSender.id : userSender;
+      const id_receiver = userReceiver ? userReceiver.id : userReceiver;
+
+      await prismaClient.user.update({
+        where: {
+          id: id_sender!,
+        },
+        data: {
+          balance: updateSenderBalance,
+        },
+      });
+
+      await prismaClient.user.update({
+        where: {
+          id: id_receiver!,
+        },
+        data: {
+          balance: updateReceiverBalance,
+        },
+      });
+
+      const createdTransaction = await prismaClient.transaction.create({
+        data: {
+          sender: id_sender!,
+          receiver: id_receiver!,
+          amount,
+        },
+      });
+
+      return response.status(200).json({
+        transaction: createdTransaction,
+        sender: userSender,
+        receiver: userReceiver,
+      });
     } catch (error) {
       return response.status(500).json(error);
     }

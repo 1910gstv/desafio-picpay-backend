@@ -3,7 +3,8 @@ import { prismaClient } from "../database/prismaClient";
 
 export class UserController {
   public async createUser(request: Request, response: Response) {
-    const { name, email, password, documents, userType } = request.body;
+    const { name, email, password, documents, balance, userType } =
+      request.body;
 
     try {
       const emailExists = await prismaClient.user.findUnique({
@@ -32,13 +33,14 @@ export class UserController {
           email,
           password,
           documents,
+          balance: balance || 0,
           userType,
         },
       });
 
       return response.status(200).json(newUserCreated);
     } catch (error) {
-      return response.status(500).json(error);
+      return response.status(500).json({ error: error });
     }
   }
 }

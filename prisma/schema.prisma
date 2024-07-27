@@ -20,10 +20,11 @@ model UserType {
 }
 
 model User {
-  id        String @db.VarChar(255) @id @default(uuid())
+  id        String @id @default(uuid()) @db.VarChar(255)
   name      String @db.VarChar(255)
   email     String @unique
   password  String @db.VarChar(255)
+  balance   Float  @default(0)
   documents String @unique @db.VarChar(255)
   userType  Int
 
