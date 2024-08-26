@@ -31,6 +31,13 @@ export class TransactionController {
           .send("Saldo insuficiente para essa transição");
       }
 
+      const auth = await fetch("https://util.devi.tools/api/v2/authorize");
+      const authResponse = (await auth.json()) as AuthResponse;
+
+      if (authResponse.data.authorization != true) {
+        return response.status(404).send("Transfência não autorizada");
+      }
+
       const updateSenderBalance = (userSender!.balance -= amount);
       const updateReceiverBalance = (userReceiver!.balance += amount);
 
@@ -72,4 +79,11 @@ export class TransactionController {
       return response.status(500).json(error);
     }
   }
+}
+
+interface AuthResponse {
+  status: number;
+  data: {
+    authorization: boolean;
+  };
 }
