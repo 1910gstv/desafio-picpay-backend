@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { prismaClient } from "../database/prismaClient";
+import Mail from "./mailerController";
 
 export class TransactionController {
   public async transaction(request: Request, response: Response) {
@@ -77,6 +78,22 @@ export class TransactionController {
       });
     } catch (error) {
       return response.status(500).json(error);
+    }
+  }
+
+  public async sendMail(request: Request, response: Response) {
+    try {
+      const { to, subject, message } = request.body;
+
+      Mail.to = to;
+      Mail.subject = subject;
+      Mail.message = message;
+
+      const result = Mail.sendMail();
+
+      return response.status(200).json({ result, message: "E-mail enviado com sucesso!" });
+    } catch (error) {
+      return response.status(500).json({ error });
     }
   }
 }
