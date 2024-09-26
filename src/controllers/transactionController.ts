@@ -71,14 +71,13 @@ export class TransactionController {
         },
       });
 
-
       const sendMail = async (to: string, subject: string, message: string) => {
         try {
           Mail.to = to;
           Mail.subject = subject;
           Mail.message = message;
 
-          const result = Mail.sendMail();
+          const result = await Mail.sendMail();
 
           return {
             status: true,
@@ -89,8 +88,6 @@ export class TransactionController {
           return { error: error };
         }
       };
-
-
 
       const sendToSender = async () => {
         let to = userSender!.email;
@@ -119,9 +116,8 @@ export class TransactionController {
         sender: userSender,
         receiver: userReceiver,
       });
-
     } catch (error) {
-      return response.status(500).json({ erroooooo: error });
+      return response.status(500).json(error);
     }
   }
 }
