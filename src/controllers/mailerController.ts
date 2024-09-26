@@ -1,5 +1,6 @@
 import * as nodemailer from "nodemailer";
 import config from "../Config";
+import { Interface } from "readline";
 
 class Mail {
   constructor(
@@ -8,7 +9,7 @@ class Mail {
     public message?: string
   ) {}
 
-  sendMail() {
+  async sendMail() {
     const transporter = nodemailer.createTransport({
       host: config.host,
       port: config.port,
@@ -27,6 +28,17 @@ class Mail {
       html: this.message,
     };
 
+    const auth = await fetch("https://util.devi.tools/api/v1/notify");
+    const authResponse = (await auth.json()) as AuthResponse;
+
+    if(authResponse.status === 'fail' ){
+      return {
+        status: false,
+        message: authResponse.data.message
+
+      }
+    };
+
     transporter.sendMail(mailOptions, function (error, info) {
       if (error) {
         console.log(error);
@@ -35,6 +47,13 @@ class Mail {
       }
     });
   }
+}
+
+interface AuthResponse {
+  status: string,
+  data: {
+    message: string;
+  };
 }
 
 export default new Mail();

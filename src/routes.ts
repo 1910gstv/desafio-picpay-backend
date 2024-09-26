@@ -9,6 +9,5 @@ const transaction = new TransactionController();
 
 router.post("/users", users.createUser);
 router.post("/transaction", transaction.transaction);
-router.post("/sendMail", transaction.sendMail);
 
 export { router };

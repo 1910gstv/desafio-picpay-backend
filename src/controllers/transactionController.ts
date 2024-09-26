@@ -71,29 +71,57 @@ export class TransactionController {
         },
       });
 
+
+      const sendMail = async (to: string, subject: string, message: string) => {
+        try {
+          Mail.to = to;
+          Mail.subject = subject;
+          Mail.message = message;
+
+          const result = Mail.sendMail();
+
+          return {
+            status: true,
+            result,
+            message: "E-mail enviado com sucesso!",
+          };
+        } catch (error) {
+          return { error: error };
+        }
+      };
+
+
+
+      const sendToSender = async () => {
+        let to = userSender!.email;
+        let subject = `Transferencia reaalizada com sucesso!`;
+        let message = `Transferência realizada para ${to}`;
+
+        const emailSender = await sendMail(to, subject, message);
+        console.log(emailSender);
+      };
+
+      await sendToSender();
+
+      const sendToReceiver = async () => {
+        let to = userReceiver!.email;
+        let subject = `Transferencia você recebeu uma transferência!`;
+        let message = `Transferência recebida de ${userSender!.name}`;
+
+        const sendReceiver = await sendMail(to, subject, message);
+        console.log(sendReceiver);
+      };
+
+      await sendToReceiver();
+
       return response.status(200).json({
         transaction: createdTransaction,
         sender: userSender,
         receiver: userReceiver,
       });
+
     } catch (error) {
-      return response.status(500).json(error);
-    }
-  }
-
-  public async sendMail(request: Request, response: Response) {
-    try {
-      const { to, subject, message } = request.body;
-
-      Mail.to = to;
-      Mail.subject = subject;
-      Mail.message = message;
-
-      const result = Mail.sendMail();
-
-      return response.status(200).json({ result, message: "E-mail enviado com sucesso!" });
-    } catch (error) {
-      return response.status(500).json({ error });
+      return response.status(500).json({ erroooooo: error });
     }
   }
 }
